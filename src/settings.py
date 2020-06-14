@@ -59,6 +59,8 @@ def settings():
                                 [sg.Text('また、ping応答の有無やtracertの結果を日毎のcsvファイルに出力します。')],
                                 [sg.Text('[設定]タブよりping実行間隔やpingに失敗した場合の通知先メールアドレスを設定してください。')],
                                 [sg.Text('ping監視の対象端末リストは別途「nodes.csv」ファイルで作成し、[設定]>[基本設定]の監視対象リスト欄にファイルパスを入力してください。')],
+                                [sg.Text('csvファイルの一行目はタイトル行とし、列は「ノード名」と「IPアドレス」の2列作成してください。')],
+                                [sg.Text('csvファイルの自動削除を行うにはdelete.pyを実行してください。')],
                                 [sg.Text('ping監視を開始するには、monitor.pyを実行してください。')]])
     t2 = sg.Tab('設定', layout=[[sg.Text('現在の設定内容は以下の通りです。空欄部分はまだ設定されていません。')],
                               [sg.Text('設定変更する場合は、項目入力後に必ず左下[保存]ボタンを押してください')],
@@ -70,7 +72,7 @@ def settings():
                        selected_background_color='#000', tab_location='topleft')]]
 
     # ウインドウ作成
-    window = sg.Window('ping監視', l1, resizable=True, size=(900, 500))
+    window = sg.Window('ping監視', l1, resizable=True, size=(930, 500))
 
     # イベントループ
     while True:
@@ -85,7 +87,7 @@ def settings():
             config.add_section(sec1)
             config.set(sec1, 'path', values['path'])
             config.set(sec1, 'nodes', values['nodes'])
-            config.set(sec1, 'delete', '-' + values['delete'])
+            config.set(sec1, 'delete', values['delete'])
             config.set(sec1, 'deltime', values['deltime'])
             config.set(sec1, 'interval', values['interval'])
 
@@ -114,8 +116,8 @@ def settings():
             config.set(sec4, 'm_password', values['m_password'])
             config.set(sec4, 'm_from', values['m_from'])
             config.set(sec4, 'm_to', values['m_to'])
-            config.set(sec4, 'subject', 'PingFailed')
-            config.set(sec4, 'body', 'Could not connect to the host')
+            config.set(sec4, 'subject', 'Ping failed')
+            config.set(sec4, 'body', 'Could not connect to the host.\nCheck the result file.')
 
             with open('config.ini', 'w') as configfile:
                 config.write(configfile)

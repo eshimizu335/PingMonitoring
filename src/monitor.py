@@ -20,7 +20,6 @@ path = config.get('settings', 'path')
 
 def run_ping():
     now = dt.datetime.now()
-    print(now)
     y = now.strftime('%Y')
     m = now.strftime('%m')
     d = now.strftime('%d')
@@ -62,13 +61,14 @@ def run_ping():
                     send_mail()
 
 
+# ping失敗通知の送付
 def send_mail():
     server = config.get('mail_settings', 'm_server')
     port = config.getint('mail_settings', 'm_port')
     user = config.get('mail_settings', 'm_user')
     password = config.get('mail_settings', 'm_password')
-    mailfrom = config.get('mail_settings', 'm_mailfrom')
-    mailto = config.get('mail_settings', 'm_mailto')
+    mailfrom = config.get('mail_settings', 'm_from')
+    mailto = config.get('mail_settings', 'm_to')
     subject = config.get('mail_settings', 'subject')
     body = config.get('mail_settings', 'body')
     message = ('From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s' % (mailfrom, mailto, subject, body))
@@ -78,34 +78,14 @@ def send_mail():
     smtp.sendmail(mailfrom, mailto, message)
 
 
-def delete_files():
-    folders = glob.glob(os.path.join(path, '*'))
-    delete = config.get('settings', 'delete')
-    for folder in folders:
-        files = glob.glob(os.path.join(folder, '*'))
-        for file in files:
-
-            print(file)
-            name = re.split('[._]', file)
-            strdate = name[-2]
-            getdate = dt.datetime.strptime(strdate, '%Y%m%d')
-            print(getdate)
-            date = dt.datetime.date(getdate)
-            print(date)
-            print(dt.date.today())
-            print(date - dt.date.today())
-            if date - dt.date.today() <= dt.timedelta(int(delete)):
-                os.remove(file)
-
-
 def start_window():
     # 開始画面のレイアウト作成
     layout = [[sg.Text('ping監視システム')],
               [sg.Text('初めて使う場合はまず設定を行ってください。')],
-              [sg.Text('設定完了後、[ping監視実行]ボタンを押してください')],
+              [sg.Text('設定完了後、[ping監視実行]ボタンを押してください。')],
+              [sg.Text('ping監視を中断するにはこのウインドウを閉じてください。')],
               [sg.Button('設定メニューへ', size=(20, 2), border_width=4)],
               [sg.Button('ping監視実行', size=(20, 2), border_width=4)],
-              [sg.Button('ping監視中断', size=(20, 2), border_width=4)],
               [sg.Button('キャンセル', size=(20, 2), border_width=4)]]
 
     window = sg.Window('ping監視システム', layout)
@@ -117,19 +97,13 @@ def start_window():
         elif event == '設定メニューへ':
             import settings as st
             st.settings()
+            start_window()
         elif event == 'ping監視実行':
             msg1 = 'ping監視を実行します。'
             sg.popup(msg1)
-            # [ping監視中断]ボタンが押されない限り繰り返しping実行
-            while True:
-                if event == 'ping監視中断':
-                    msg2 = 'ping監視を中断します。'
-                    sg.popup(msg2)
-                    return False
-                else:
-                    run_ping()
-                    i = config.get('settings', 'interval')
-                    time.sleep(int(i) * 60)
+            run_ping()
+            i = config.get('settings', 'interval')
+            time.sleep(int(i) * 60)
 
         window.close()
 
@@ -178,13 +152,6 @@ def main():
 
     # ping監視実行画面立ち上げ
     start_window()
-
-    # 毎日一定の時刻に古いログファイルを削除する
-    deltime = config.get('settings', 'deltime')
-    schedule.every().day.at(deltime).do(delete_files)
-    while True:
-        schedule.run_pending()
-        time.sleep(59)
 
 
 if __name__ == '__main__':
