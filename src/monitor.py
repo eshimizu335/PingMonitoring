@@ -58,19 +58,19 @@ def run_ping():
                     hops = traceroute(row[1], count=tc, interval=ti, timeout=tt, id=PID, max_hops=tm, fast_mode=tf)
                     w.writerow([t, 'NG', hops])
 
-                    send_mail()
+                    send_mail(row[0],file)
 
 
 # ping失敗通知の送付
-def send_mail():
+def send_mail(node,file):
     server = config.get('mail_settings', 'm_server')
     port = config.getint('mail_settings', 'm_port')
     user = config.get('mail_settings', 'm_user')
     password = config.get('mail_settings', 'm_password')
     mailfrom = config.get('mail_settings', 'm_from')
     mailto = config.get('mail_settings', 'm_to')
-    subject = config.get('mail_settings', 'subject')
-    body = config.get('mail_settings', 'body')
+    subject = config.get('mail_settings', 'subject')+node
+    body = config.get('mail_settings', 'body')+'\n'+file
     message = ('From: %s\r\nTo: %s\r\nSubject: %s\r\n\r\n%s' % (mailfrom, mailto, subject, body))
 
     smtp = smtplib.SMTP_SSL(server, port)
@@ -101,9 +101,10 @@ def start_window():
         elif event == 'ping監視実行':
             msg1 = 'ping監視を実行します。'
             sg.popup(msg1)
-            run_ping()
-            i = config.get('settings', 'interval')
-            time.sleep(int(i) * 60)
+            schedule.every(config.getint('settings', 'interval')).minutes.do(run_ping())
+            while True:
+                schedule.run_pending()
+                time.sleep(1)
 
         window.close()
 

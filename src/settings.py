@@ -116,7 +116,7 @@ def settings():
             config.set(sec4, 'm_password', values['m_password'])
             config.set(sec4, 'm_from', values['m_from'])
             config.set(sec4, 'm_to', values['m_to'])
-            config.set(sec4, 'subject', 'Ping failed')
+            config.set(sec4, 'subject', 'Ping failed_')
             config.set(sec4, 'body', 'Could not connect to the host.\nCheck the result file.')
 
             with open('config.ini', 'w') as configfile:

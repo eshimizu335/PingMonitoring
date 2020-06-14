@@ -19,7 +19,6 @@ path = config.get('settings', 'path')
 def delete_files():
     folders = glob.glob(os.path.join(path, '*'))
     delete = config.get('settings', 'delete')
-    dele = '-'+delete
     for folder in folders:
         files = glob.glob(os.path.join(folder, '*'))
         for file in files:
@@ -27,8 +26,9 @@ def delete_files():
             name = re.split('[._]', file)
             strdate = name[-2]
             getdate = dt.datetime.strptime(strdate, '%Y%m%d')
-            date = dt.datetime.date(getdate)
-            if date - dt.date.today() <= dt.timedelta(dele):  # 過ぎていたら削除する
+            today = dt.datetime.today()
+            days = today - getdate
+            if days > dt.timedelta(int(delete)):  # 過ぎていたら削除する
                 os.remove(file)
 
 
@@ -67,5 +67,3 @@ def start_window():
 
 
 start_window()
-
-
